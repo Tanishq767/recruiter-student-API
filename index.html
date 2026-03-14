@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Lookup</title>
+</head>
+
+<body>
+
+<h2>Search Student by USN</h2>
+
+<input type="text" id="usnInput" placeholder="Enter USN">
+<button onclick="searchStudent()">Search</button>
+
+<h3>Student Details</h3>
+<p id="result"></p>
+
+<script>
+
+async function searchStudent(){
+
+    const usn = document.getElementById("usnInput").value;
+
+    const response = await fetch(`http://localhost:3000/api/students/usn/${usn}`);
+
+    if(!response.ok){
+        document.getElementById("result").innerText = "Student not found";
+        return;
+    }
+
+    const student = await response.json();
+
+    document.getElementById("result").innerText =
+    "Name: " + student.name +
+    "\nBranch: " + student.Branch +
+    "\nPhone: " + student.PhoneNo +
+    "\nUSN: " + student.USN;
+}
+
+</script>
+
+</body>
+</html>

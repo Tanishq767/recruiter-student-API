@@ -1,5 +1,6 @@
 const express = require('express')
 const categories = require('./routes/categories')
+const cors = require('cors')
 const app = express()
 const mongoose  = require('mongoose')
 const students = require('./routes/students')
@@ -9,6 +10,7 @@ mongoose.connect('mongodb://127.0.0.1/learningPlatForm')
 .then(() => console.log('Connection is successful'))
 .catch(err => console.error('Couldnt connect to mongoDB', err))
 
+app.use(cors())
 app.use(express.json())
 app.use(categories) //enables reading of json stuff and assign it to req.body
 app.use('/api/students', students)

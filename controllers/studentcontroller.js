@@ -1,4 +1,4 @@
-const Student = require('../models/studentsmodels')
+const {Student} = require('../models/studentsmodels')
 
 exports.createStudent = async(req,res) => {
     try {
@@ -15,6 +15,20 @@ exports.getStudent = async(req,res) => {
         const students = await Student.find();
         res.send(students);
     } catch(err){
+        res.status(500).send(err.message);
+    }
+};
+
+exports.getStudentbyUSN = async(req,res) => {
+    try{
+        const student = await Student.findOne({USN : req.params.usn});
+
+        if(!student){
+            return res.status(404).send("student not found");
+        }
+
+        res.send(student);
+    }catch(err){
         res.status(500).send(err.message);
     }
 };
