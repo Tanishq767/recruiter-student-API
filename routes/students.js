@@ -10,6 +10,8 @@ router.post('/',
 
 router.get('/usn/:usn', studentController.getStudentbyUSN);
 
+router.get('/top/global/:metric', studentController.getGlobalTopByMetric);
+
 // router.put('/:id', async(req,res) => {
 //     const student = await Student.findByIdAndUpdate(req.params.id, {name : req.body.name, birthdate :req.body.birthdate, PhoneNo : req.body.PhoneNo, Branch : req.body.Branch, USN : req.body.USN}, {new : true})
 //     if(!student) return res.status(404).send('Given Category not found');

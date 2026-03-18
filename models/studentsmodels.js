@@ -6,7 +6,10 @@ const studentSchema = new mongoose.Schema({
     PhoneNo : {type : String, required : true, minlength : 10, maxlength : 10},
     Branch : {type : String, required : true},
     USN : {type : String, required : true},
-    CGPA : {type : Number, required : true}
+    CGPA : {type : Number, required : true},
+    resumeScore : {type : Number, required : true},
+    hackathons : {type : Number, required : true},
+    projects : {type : Number, required : true}
 })
 
 const Student = new mongoose.model('Student', studentSchema)

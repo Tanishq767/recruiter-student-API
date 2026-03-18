@@ -14,21 +14,44 @@
 <h3>Student Details</h3>
 <p id="result"></p>
 
+<h2>Top 10% Students</h2>
+
+<select id="metricSelect">
+    <option value="CGPA">CGPA</option>
+    <option value="projects">Projects</option>
+    <option value="hackathons">Hackathons</option>
+    <option value="resumeScore">Resume Score</option>
+</select>
+
+<button onclick="getTopStudents()">Show Top 10%</button>
+
+<pre id="topResult"></pre>
+
 <script>
+
+async function getTopStudents(){
+
+    const metric = document.getElementById("metricSelect").value;
+    const response = await fetch(
+        `http://localhost:3000/api/students/top/global/${metric}`
+    );
+    const data = await response.json();
+    let output = "Top 10% Students by " + metric + "\n\n";
+    data.forEach((s, index) => {
+        output += `${index+1}. ${s.name} - ${metric}: ${s[metric]}\n`
+    });
+    document.getElementById("topResult").innerText = output;
+}
 
 async function searchStudent(){
 
     const usn = document.getElementById("usnInput").value;
-
     const response = await fetch(`http://localhost:3000/api/students/usn/${usn}`);
-
     if(!response.ok){
         document.getElementById("result").innerText = "Student not found";
         return;
     }
-
     const student = await response.json();
-
     document.getElementById("result").innerText =
     "Name: " + student.name +
     "\nBranch: " + student.Branch +
@@ -37,6 +60,5 @@ async function searchStudent(){
 }
 
 </script>
-
 </body>
 </html>

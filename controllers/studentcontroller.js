@@ -32,3 +32,31 @@ exports.getStudentbyUSN = async(req,res) => {
         res.status(500).send(err.message);
     }
 };
+
+exports.getGlobalTopByMetric = async (req,res) => {
+    try{
+        const metric = req.params.metric
+        const allowedMetrics = [
+            "CGPA",
+            "resumeScore",
+            "hackathons",
+            "projects"
+        ]
+
+        if(!allowedMetrics.includes(metric)){
+            return res.status(400).send("Invalid metric")
+        }
+
+        const students = await Student.find()
+        students.sort((a,b)=> b[metric] - a[metric])
+        const topCount = Math.ceil(students.length * 0.10)
+        const topStudents = students.slice(0, topCount)
+
+        res.send(topStudents)
+
+    }
+    catch(err){
+        res.status(500).send(err.message)
+    }
+
+}
