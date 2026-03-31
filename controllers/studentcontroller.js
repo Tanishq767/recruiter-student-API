@@ -49,7 +49,7 @@ exports.getGlobalTopByMetric = async (req,res) => {
 
         const students = await Student.find()
         students.sort((a,b)=> b[metric] - a[metric])
-        const topCount = Math.ceil(students.length * 0.10)
+        const topCount = Math.ceil(students.length * 0.10) 
         const topStudents = students.slice(0, topCount)
 
         res.send(topStudents)
