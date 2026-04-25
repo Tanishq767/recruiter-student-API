@@ -35,33 +35,6 @@ const getStudentbyUSN = async(req,res) => {
     }
 };
 
-const getGlobalTopByMetric = async (req,res) => {
-    try{
-        const metric = req.params.metric
-        const allowedMetrics = [
-            "CGPA",
-            "resumeScore",
-            "hackathons",
-            "projects"
-        ]
-
-        if(!allowedMetrics.includes(metric)){
-            return res.status(400).send("Invalid metric")
-        }
-
-        const students = await Student.find()
-        students.sort((a,b)=> b[metric] - a[metric])
-        const topCount = Math.ceil(students.length * 0.10) 
-        const topStudents = students.slice(0, topCount)
-
-        res.send(topStudents)
-
-    }
-    catch(err){
-        res.status(500).send(err.message)
-    }
-}
-
 const uploadStudents = async(req,res) => {
         const results = []
 
@@ -90,10 +63,70 @@ const uploadStudents = async(req,res) => {
         })
     }
 
+const filterStudents = async (req,res) => {
+    try{
+
+        const { branches, weights, percent } = req.body
+
+        const allowedMetrics = [
+            "CGPA",
+            "resumeScore",
+            "hackathons",
+            "projects"
+        ]
+
+        for(const key in weights){
+            if(!allowedMetrics.includes(key)){
+                return res.status(400).send("Invalid metric in weights")
+            }
+        }
+        let total = 0
+        for(const key in weights){
+            total += weights[key]
+        }
+
+        for(const key in weights){
+            weights[key] = weights[key] / total
+        }
+
+        let query = {}
+
+        if(branches && !branches.includes("ALL")){
+            query.Branch = { $in: branches } //in is mongoose operator to find if students Branch is in branches.
+        }
+
+        const students = await Student.find(query)
+        const ranked = students.map(s => {
+
+            let score = 0
+
+            for(const key in weights){
+                score += (s[key] || 0) * weights[key]
+            }
+
+            return {
+                ...s._doc,
+                score
+            }
+        })
+
+        ranked.sort((a,b)=> b.score - a.score)
+
+        const count = Math.ceil(ranked.length * (percent / 100))
+
+        const result = ranked.slice(0, count)
+
+        res.send(result)
+
+    } catch(err){
+        res.status(500).send(err.message)
+    }
+}
+
 module.exports = {
     createStudent,
     getStudent,
     getStudentbyUSN,
-    getGlobalTopByMetric,
     uploadStudents,
+    filterStudents,
 };

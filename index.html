@@ -14,44 +14,82 @@
 <h3>Student Details</h3>
 <p id="result"></p>
 
-<h2>Top 10% Students</h2>
+<h2> Filter Students </h2>
 
-<select id="metricSelect">
-    <option value="CGPA">CGPA</option>
-    <option value="projects">Projects</option>
-    <option value="hackathons">Hackathons</option>
-    <option value="resumeScore">Resume Score</option>
+<h3>select branches</h3>
+<select id = "BranchSelect">
+    <option value = "ALL">ALL</option> //value here is what gets actually sent to backend
+    <option value = "CSE">CSE</option>
+    <option value = "AIDS">AIDS</option>
+    <option value = "ISE">ISE</option>
 </select>
 
-<button onclick="getTopStudents()">Show Top 10%</button>
+<h3> enter weights </h3>
+CGPA: <input type = "number" id = "cgpaw" value = "0.5" step = 0.1><br> <!--type number gives the input box arrows to increase/decrease the ipt, value attr is default-->
+Projects: <input type = "number" id = "prjw" value = "0.5" step = 0.1><br>
+Hackathons: <input type = "number" id = "hackw" value = "0.5" step = 0.1><br>
+Resume: <input type = "number" id = "resw" value = "0.5" step = 0.1><br> 
 
-<pre id="topResult"></pre>
+<h3> Top Percentage </h3>
+<input type = "number" id = "percentip" value = "10">
+
+<br><br>
+
+<button onclick="getRankedStudents()">get top students</button>
+
+<h3> results </h3>
+<pre id = "topResult"></pre>
 
 <script>
 
-async function getTopStudents(){
+async function getRankedStudents(){
+    const branch = document.getElementById("BranchSelect").value;
 
-    const metric = document.getElementById("metricSelect").value;
-    const response = await fetch(
-        `http://localhost:3000/api/students/top/global/${metric}`
-    );
-    const data = await response.json();
-    let output = "Top 10% Students by " + metric + "\n\n";
-    data.forEach((s, index) => {
-        output += `${index+1}. ${s.name} - ${metric}: ${s[metric]}\n`
+    const weights = {
+        CGPA: parseFloat(document.getElementById("cgpaw").value),
+        projects: parseFloat(document.getElementById("prjw").value),
+        hackathons: parseFloat(document.getElementById("hackw").value),
+        resumeScore: parseFloat(document.getElementById("resw").value)
+    }
+
+    const percent = parseInt(document.getElementById("percentip").value)
+
+    const response = await fetch("http://localhost:3000/api/students/filter", {
+        method: "POST",
+        headers: {
+            "Content-type" : "application/json"
+        },
+        body: JSON.stringify({
+            branches: [branch],
+            weights: weights,
+            percent: percent
+        })
     });
+
+    const data = await response.json();
+
+    let output = "top " + percent + "% Students\n\n"
+
+    data.forEach((s,index) => {
+        output += `${index+1}. ${s.name} | Score: ${s.score.toFixed(2)} | CGPA: ${s.CGPA}\n`
+    });
+
     document.getElementById("topResult").innerText = output;
 }
 
 async function searchStudent(){
 
     const usn = document.getElementById("usnInput").value;
+
     const response = await fetch(`http://localhost:3000/api/students/usn/${usn}`);
+
     if(!response.ok){
         document.getElementById("result").innerText = "Student not found";
         return;
     }
+
     const student = await response.json();
+
     document.getElementById("result").innerText =
     "Name: " + student.name +
     "\nBranch: " + student.Branch +
@@ -60,5 +98,6 @@ async function searchStudent(){
 }
 
 </script>
+
 </body>
 </html>

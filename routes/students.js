@@ -10,7 +10,7 @@ router.post('/',
 
 router.get('/usn/:usn', studentController.getStudentbyUSN);
 
-router.get('/top/global/:metric', studentController.getGlobalTopByMetric);
+router.post('/filter', studentController.filterStudents); // we use post here 
 
 const upload = require('../middlewares/upload'); //imports the multer function from middleware
 const {uploadStudents} = require('../controllers/studentcontroller'); 
