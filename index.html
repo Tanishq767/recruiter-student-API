@@ -1,63 +1,155 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Student Lookup</title>
+    <title>Recruiter Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+        }
+
+        input, select {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result-card {
+            background: #eef3ff;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+        }
+
+    </style>
 </head>
 
 <body>
 
-<h2>Search Student by USN</h2>
+<div class="container">
 
-<input type="text" id="usnInput" placeholder="Enter USN">
-<button onclick="searchStudent()">Search</button>
+    <div class="card">
+        <h2>Search Student by USN</h2>
+        <input type="text" id="usnInput" placeholder="Enter USN">
+        <button onclick="searchStudent()">Search</button>
 
-<h3>Student Details</h3>
-<p id="result"></p>
+        <div id="result"></div>
+    </div>
 
-<h2> Filter Students </h2>
+    <div class="card">
+        <h2>Recruiter Ranking System</h2>
 
-<h3>select branches</h3>
-<select id = "BranchSelect">
-    <option value = "ALL">ALL</option> //value here is what gets actually sent to backend
-    <option value = "CSE">CSE</option>
-    <option value = "AIDS">AIDS</option>
-    <option value = "ISE">ISE</option>
-</select>
+        <label>Branch</label>
+        <select id="branchSelect">
+            <option value="ALL">ALL</option>
+            <option value="CSE">CSE</option>
+            <option value="AIDS">AIDS</option>
+            <option value="ISE">ISE</option>
+        </select>
 
-<h3> enter weights </h3>
-CGPA: <input type = "number" id = "cgpaw" value = "0.5" step = 0.1><br> <!--type number gives the input box arrows to increase/decrease the ipt, value attr is default-->
-Projects: <input type = "number" id = "prjw" value = "0.5" step = 0.1><br>
-Hackathons: <input type = "number" id = "hackw" value = "0.5" step = 0.1><br>
-Resume: <input type = "number" id = "resw" value = "0.5" step = 0.1><br> 
+        <h3>Weights</h3>
 
-<h3> Top Percentage </h3>
-<input type = "number" id = "percentip" value = "10">
+        <label>CGPA</label>
+        <input type="number" id="cgpaWeight" step="0.1" value="0.5">
 
-<br><br>
+        <label>Projects</label>
+        <input type="number" id="projectsWeight" step="0.1" value="0.3">
 
-<button onclick="getRankedStudents()">get top students</button>
+        <label>Hackathons</label>
+        <input type="number" id="hackathonsWeight" step="0.1" value="0.2">
 
-<h3> results </h3>
-<pre id = "topResult"></pre>
+        <label>Resume Score</label>
+        <input type="number" id="resumeWeight" step="0.1" value="0">
+
+        <label>Top %</label>
+        <input type="number" id="percentInput" value="10">
+
+        <button onclick="getRankedStudents()">Get Top Students</button>
+
+        <div id="topResult"></div>
+    </div>
+
+</div>
 
 <script>
 
-async function getRankedStudents(){
-    const branch = document.getElementById("BranchSelect").value;
+async function searchStudent(){
 
-    const weights = {
-        CGPA: parseFloat(document.getElementById("cgpaw").value),
-        projects: parseFloat(document.getElementById("prjw").value),
-        hackathons: parseFloat(document.getElementById("hackw").value),
-        resumeScore: parseFloat(document.getElementById("resw").value)
+    const usn = document.getElementById("usnInput").value;
+
+    const response = await fetch(`http://localhost:3000/api/students/usn/${usn}`);
+
+    if(!response.ok){
+        document.getElementById("result").innerHTML = "<p>Student not found</p>";
+        return;
     }
 
-    const percent = parseInt(document.getElementById("percentip").value)
+    const s = await response.json();
+
+    document.getElementById("result").innerHTML = `
+        <div class="result-card">
+            <b>${s.name}</b><br>
+            Branch: ${s.Branch}<br>
+            USN: ${s.USN}<br>
+            CGPA: ${s.CGPA}
+        </div>
+    `;
+}
+
+async function getRankedStudents(){
+
+    const branch = document.getElementById("branchSelect").value;
+
+    const weights = {
+        CGPA: parseFloat(document.getElementById("cgpaWeight").value),
+        projects: parseFloat(document.getElementById("projectsWeight").value),
+        hackathons: parseFloat(document.getElementById("hackathonsWeight").value),
+        resumeScore: parseFloat(document.getElementById("resumeWeight").value)
+    };
+
+    const percent = parseInt(document.getElementById("percentInput").value);
 
     const response = await fetch("http://localhost:3000/api/students/filter", {
         method: "POST",
         headers: {
-            "Content-type" : "application/json"
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({
             branches: [branch],
@@ -68,33 +160,19 @@ async function getRankedStudents(){
 
     const data = await response.json();
 
-    let output = "top " + percent + "% Students\n\n"
+    let html = `<h3>Top ${percent}% Students</h3>`;
 
-    data.forEach((s,index) => {
-        output += `${index+1}. ${s.name} | Score: ${s.score.toFixed(2)} | CGPA: ${s.CGPA}\n`
+    data.forEach((s, index) => {
+        html += `
+            <div class="result-card">
+                <b>#${index+1} ${s.name}</b><br>
+                Score: ${s.score.toFixed(2)}<br>
+                CGPA: ${s.CGPA}
+            </div>
+        `;
     });
 
-    document.getElementById("topResult").innerText = output;
-}
-
-async function searchStudent(){
-
-    const usn = document.getElementById("usnInput").value;
-
-    const response = await fetch(`http://localhost:3000/api/students/usn/${usn}`);
-
-    if(!response.ok){
-        document.getElementById("result").innerText = "Student not found";
-        return;
-    }
-
-    const student = await response.json();
-
-    document.getElementById("result").innerText =
-    "Name: " + student.name +
-    "\nBranch: " + student.Branch +
-    "\nPhone: " + student.PhoneNo +
-    "\nUSN: " + student.USN;
+    document.getElementById("topResult").innerHTML = html;
 }
 
 </script>
